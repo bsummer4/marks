@@ -9,21 +9,34 @@
 #include <err.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <string.h>
+#include <assert.h>
 
-static void input (char *buf) {
-	int tabs=0, spaces=0;
-	char *scan = buf;
-	while (*scan == '\t') scan++, tabs++;
-	while (*scan == ' ') scan++, spaces++;
-	if (!tabs && !spaces) {
-		if (*scan != '\n') errx(1, "Empty lines must be empty");
-		inparagraph=0;
-		return; }
-	fprintf(stderr, "%d tabs and %d spaces\n", tabs, spaces); }
+static void header (char *l) {
+	int c;
+	for (c=0; '#'==*l; c++,l++);
+	if (' '!=(*l++)) errx(1, "Invalid Header");
+	printf("<h%d>%s</h%d>\n", c, l, c); }
+
+static void input (char *l) {
+	if (isspace(*l)) errx(1, "No indentation is allowed");
+	static bool inpara = false;
+	if ('#'==*l) { header(l),inpara=false; return; }
+	if (!*l && inpara) puts("</p>"), inpara=false;
+	if (*l && inpara) puts(l);
+	if (*l && !inpara) puts("<p>"), puts(l), inpara=true; }
 
 int main (int argc, char *argv[]) {
+	puts("<html><body>");
 	char buf[80];
-	while (buf[78] = '\0', fgets(buf, 80, stdin))
-		if (buf[78] == '\n' || buf[78] == '\0') input(buf);
+	while (buf[78] = '\0', fgets(buf, 80, stdin)) /* strlen(buf)>0 */
+		if (buf[78] == '\n' || buf[78] == '\0') {
+			int l=strlen(buf);
+			if ('\n'!=buf[l-1]) errx(1, "Last character must be a newline.  ");
+			buf[l-1]='\0';
+			input(buf); }
 		else errx(1, "A line is longer than 78 characters");
+	input("");
+	puts("</body></html>");
 	return 0; }
