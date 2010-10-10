@@ -1,4 +1,4 @@
-# Pretty 
+# Pretty
 This is a paragraph.  It is pretty.
 I like pretty paragraphs.
 They are pretty pretty.
@@ -6,7 +6,24 @@ They are pretty pretty.
 Awesomeness is awesome.
 There is no doubt,
 though it's not a tautology.
+	Oh, really?
+Why yes!
 
-O, really?
+# Awesome
 
-Yes!
+Awesomeness is awesome. \\
+There is no doubt, \\
+though it's not a tautology.
+
+	Oh, really?
+
+Why yes!
+
+# Lists
+- a
+	1. b
+	2. c
+- d
+
+| int main (int argc, char *argv[]) {
+|  puts("This is a c program."); }

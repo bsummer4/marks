@@ -1,6 +1,16 @@
-all:V: marks
+CFLAGS = -O0 -g -std=c99
+
+all:V: marks example.html
+show:V: example.html
+	uzbl example.html &
+
 clean:V:
-	rm marks
+	rm marks *.html
+
 
 marks: marks.c
-	gcc marks.c -o $target
+	gcc $CFLAGS marks.c -o $target
+
+
+%.html:D: % marks
+	./marks <$stem >$stem.html

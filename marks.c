@@ -1,10 +1,7 @@
-// - whitespace at the end of a line is not legal
-// - indentation must be of the form /^\t*((   )|(  )|())/
-// /^##* (.*)/ -> header \1
-// /^[-*%@] ([^ ].*)/ -> set \1
-// /^([0-9]*|[a-z]*|[A-Z]*|[IVXC]*)\. (.*)/ -> list \1
-// /^  ([^ ].*)/ -> setc \1
-// /^  
+// - TODO | Literal quotation
+// - TODO - Lists
+// - TODO 1. More lists
+// - TODO explicit newlines \\
 
 #include <err.h>
 #include <stdio.h>
@@ -13,26 +10,49 @@
 #include <string.h>
 #include <assert.h>
 
-static void header (char *l) {
+int Level = 0;
+int Inpara[7] = {0};
+
+static void header (char *l)
+{	assert('#'==*l);
 	int c;
 	for (c=0; '#'==*l; c++,l++);
 	if (' '!=(*l++)) errx(1, "Invalid Header");
 	printf("<h%d>%s</h%d>\n", c, l, c); }
 
-static void input (char *l) {
-	if (isspace(*l)) errx(1, "No indentation is allowed");
-	static bool inpara = false;
-	if ('#'==*l) { header(l),inpara=false; return; }
-	if (!*l && inpara) puts("</p>"), inpara=false;
-	if (*l && inpara) puts(l);
-	if (*l && !inpara) puts("<p>"), puts(l), inpara=true; }
+static void endpara () { if (Inpara[Level]) puts("</p>"),Inpara[Level]=false; }
+static void startpara () { if (!Inpara[Level]) puts("<p>"),Inpara[Level]=true; }
 
-int main (int argc, char *argv[]) {
-	puts("<html><body>");
+static void pedant (char *line)
+{	for (char *c=line; *c; c++)
+		 if ('\t'==*c)
+			errx(1, "No tabs are allowed except at the beginning of lines");
+	{	int l = strlen(line);
+		if (l && isspace(line[l-1]))
+			errx(1, "No spaces are allowed at the end of a line"); }}
+
+/* Sets 'Level', handles <blockquote>s, and removed tabs from l.  */
+static void handlequote (char **l)
+{	int c;
+	for (c=0; '\t'==**l; c++,(*l)++);
+	while (Level>c) puts("</blockquote>"),Level--;
+	while (Level<c) puts("<blockquote>"),Level++,Inpara[Level]=true; }
+
+static void input (char *l)
+{	handlequote(&l);
+	pedant(l);
+	if (isspace(*l)) errx(1, "Lines must not start with spaces; only tabs.");
+	if ('#'==*l) { endpara(),header(l); return; }
+	if (!*l) endpara();
+	if (*l) startpara();
+	if (Inpara[Level]) puts(l); }
+
+int main (int argc, char *argv[])
+{	puts("<html><body>");
 	char buf[80];
 	while (buf[78] = '\0', fgets(buf, 80, stdin)) /* strlen(buf)>0 */
-		if (buf[78] == '\n' || buf[78] == '\0') {
-			int l=strlen(buf);
+		if (buf[78] == '\n' || buf[78] == '\0')
+		{	int l=strlen(buf);
 			if ('\n'!=buf[l-1]) errx(1, "Last character must be a newline.  ");
 			buf[l-1]='\0';
 			input(buf); }
