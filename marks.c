@@ -1,6 +1,5 @@
 // - TODO - Lists
 // - TODO 1. More lists
-// - TODO explicit newlines \\
 
 #include <err.h>
 #include <stdio.h>
@@ -78,7 +77,9 @@ static void input (char *l)
 	if ('|'==*l) { pre(l); return; }
 	if (!*l) endpara(),endpre();
 	if (*l) startpara();
-	if (Inpara[Level]) puts(l); }
+	{	int len=strlen(l), br=(len>=2 && !strcmp(l+(len-2), "\\\\"));
+		if (br) l[len-2]='\0';
+		if (Inpara[Level]) printf("%s%s\n", l, br?"<br>":""); }}
 
 int main (int argc, char *argv[])
 {	puts("<html>\n<body>");
