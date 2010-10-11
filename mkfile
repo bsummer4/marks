@@ -5,7 +5,7 @@ show:V: example.html
 	uzbl example.html &
 
 clean:V:
-	rm marks *.html
+	rm -f marks *.html
 
 
 marks: marks.c
