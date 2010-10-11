@@ -25,5 +25,5 @@ Why yes!
 	2. c
 - d
 
-| int main (int argc, char *argv[]) {
-|  puts("This is a c program."); }
+|	int main (int argc, char *argv[]) {
+|		puts("This is a c program."); }
