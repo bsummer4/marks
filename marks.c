@@ -30,11 +30,10 @@ static void pedant (char *line)
 int Level = 0;
 int Inpara[10] = {0};
 int Inpre[10] = {0};
-
-static void endpre ();
-static void startpre ();
 static void endpara ();
-static void startpara ();
+
+static void accend () { puts("</blockquote>"),Level--; }
+static void decend () { puts("<blockquote>"),Level++,Inpara[Level]=true; }
 
 static void endpre ()
 {	if (Inpre[Level]) puts("</pre>"),Inpre[Level]=false; }
@@ -63,17 +62,18 @@ static void header (char *l)
 static char *indent (char *l)
 {	int c;
 	for (c=0; '\t'==*l; c++,l++);
-	/* Note that this next case should never happen because any line with 10+
-		levels of indentation is over 78 characters wide. */
+	/* Note that this next case should already have been caught
+	   because any line with 10+ levels of indentation is over 78
+	   visual characters wide anyways. */
 	if (c>9) errx(1, "Only 9 levels of indentation are allowed.");
-	while (Level>c) puts("</blockquote>"),Level--;
-	while (Level<c) puts("<blockquote>"),Level++,Inpara[Level]=true;
+	while (Level>c) accend();
+	while (Level<c) decend();
 	return l; }
 
 static void input (char *l)
 {	pedant(l);
 	l=indent(l);
-	if (isspace(*l)) errx(1, "Lines must not start with spaces; only tabs.");
+	if (isspace(*l)) errx(1, "Bogus whitespace at the beginning of a line.");
 	if ('#'==*l) { header(l); return; }
 	if ('|'==*l) { pre(l); return; }
 	if (!*l) endpara(),endpre();
