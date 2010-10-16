@@ -1,3 +1,6 @@
+Note that this file is not designed to be pretty.  It is designed to
+show how 'marks' reacts to various valid inputs.
+
 # Pretty
 This is a paragraph.  It is pretty.
 I like pretty paragraphs.
@@ -21,9 +24,14 @@ Why yes!
 
 # Lists
 - a
-	1. b
-	2. c
+	- b
+	- c
+	  c \\
+	  c
 - d
 
 |	int main (int argc, char *argv[]) {
 |		puts("This is a c program."); }
+	| wut
+	| lol
+		| No, sir.  You!

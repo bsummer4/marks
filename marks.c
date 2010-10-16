@@ -1,5 +1,3 @@
-// # TODO - Lists
-// # TODO 1. More lists
 // # TODO Support utf8
 
 #include <err.h>
@@ -8,6 +6,48 @@
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
+
+/*
+	'n' is the number of an ordered list or the number of a header,
+	or a flag for whether a '<li>' has been ommited in the LIST state.
+	the typedef S is only for brevity in literal expressions.
+*/
+enum { NONE, P, LIST, OL, QUOTE, HEADER };
+typedef struct state { int state, n; } S;
+struct state State[9] = {0};
+int Level = 0;
+
+static void exitstate ()
+{	switch (State[Level].state) {
+	 case NONE: break;
+	 case P: puts("</p>"); break;
+	 case LIST:
+		if (State[Level].n) puts("</li>");
+		puts("</ul>");
+		break;
+	 case QUOTE: puts("</pre>"); break;
+	 case HEADER: printf("</h%d>\n", State[Level].n); break; }
+	State[Level].state = NONE; }
+
+static void enterstate (int s, int n)
+{	if (s==State[Level].state) return;
+	exitstate();
+	switch (s) {
+	 case NONE: break;
+	 case P: puts("<p>"); break;
+	 case LIST: puts("<ul>"); break;
+	 case QUOTE: puts("<pre>"); break;
+	 case HEADER: printf("<h%d>\n", n); break; }
+	State[Level] = (S){s, n}; }
+
+/* Sets 'Level', handles <blockquote>s, returns l with tabs removed.  */
+static char *indent (char *l)
+{	int c;
+	for (c=0; '\t'==*l; c++,l++);
+	if (c>9) errx(1, "Only 9 levels of indentation are allowed.");
+	while (Level>c) exitstate(),puts("</blockquote>"),Level--;
+	while (Level<c) exitstate(),puts("<blockquote>"),Level++;
+	return l; }
 
 static void pedant (char *line)
 {	char *c;
@@ -27,60 +67,50 @@ static void pedant (char *line)
 			errx(1, "A line is visually longer than 78 characters.  "
 		        	"Note that tabs count as 8 characters."); }}
 
-int Level = 0;
-int Inpara[10] = {0};
-int Inpre[10] = {0};
-static void endpara ();
+static int count (char pre, char *l) {
+	int x=0;
+	while (pre==*l++) x++;
+	return x; }
 
-static void accend () { puts("</blockquote>"),Level--; }
-static void decend () { puts("<blockquote>"),Level++,Inpara[Level]=true; }
-
-static void endpre ()
-{	if (Inpre[Level]) puts("</pre>"),Inpre[Level]=false; }
-static void startpre ()
-{	if (!Inpre[Level]) endpara(),puts("<pre>"),Inpre[Level]=true; }
-
-static void endpara ()
-{	if (Inpara[Level])endpre(),puts("</p>"),Inpara[Level]=false; }
-static void startpara ()
-{	if (!Inpara[Level]) endpre(),puts("<p>"),Inpara[Level]=true; }
-
-static void pre (char *l) {
-	if ('|'!=*l++) errx(1, "Invalid quotation.");
-	if (!isspace(*l++)) errx(1, "Invalid quotation.");
-	startpre();
-	puts(l); }
-
-static void header (char *l)
-{	int c=0;
-	for (; '#'==*l; c++,l++);
-	if (' '!=(*l++)) errx(1, "Invalid header.");
-	endpara();
-	printf("<h%d>\n%s\n</h%d>\n", c, l, c); }
-
-/* Sets 'Level', handles <blockquote>s, returns l with tabs removed.  */
-static char *indent (char *l)
-{	int c;
-	for (c=0; '\t'==*l; c++,l++);
-	/* Note that this next case should already have been caught
-	   because any line with 10+ levels of indentation is over 78
-	   visual characters wide anyways. */
-	if (c>9) errx(1, "Only 9 levels of indentation are allowed.");
-	while (Level>c) accend();
-	while (Level<c) decend();
-	return l; }
+static void emit (char *l)
+{	int len=strlen(l), br=(len>=2 && !strcmp(l+(len-2), "\\\\"));
+	if (br) l[len-2]='\0';
+	printf("%s%s\n", l, br?"<br>":""); }
 
 static void input (char *l)
 {	pedant(l);
 	l=indent(l);
-	if (isspace(*l)) errx(1, "Bogus whitespace at the beginning of a line.");
-	if ('#'==*l) { header(l); return; }
-	if ('|'==*l) { pre(l); return; }
-	if (!*l) endpara(),endpre();
-	if (*l) startpara();
-	{	int len=strlen(l), br=(len>=2 && !strcmp(l+(len-2), "\\\\"));
-		if (br) l[len-2]='\0';
-		if (Inpara[Level]) printf("%s%s\n", l, br?"<br>":""); }}
+	switch(*l)
+	{case '\0': enterstate(NONE, -1); break;
+	 case '-': enterstate(LIST, 0); break;
+	 case ' ': enterstate(LIST, 0); break;
+	 case '|': enterstate(QUOTE, -1); break;
+	 case '#': enterstate(HEADER, count('#', l)); break;
+	 default: enterstate(P, -1); }
+
+	switch (State[Level].state)
+	{case NONE: return;
+	 case LIST:
+	 {	int *n = &State[Level].n;
+		bool cont = (' '==*l++);
+		if (' '!=*l++) errx(1, "bad list.");
+		if (isspace(*l)) errx(1, "bad list.");
+		if (!*n && cont) errx(1, "space w/o list");
+		if (*n && !cont) puts("</li>");
+		if (!cont) puts("<li>");
+		*n=1,emit(l);
+		break; }
+	 case P: emit(l); break;
+	 case HEADER:
+		while ('#'==*l) l++;
+		if (' '!=(*l++)) errx(1, "bad header.");
+		puts(l),exitstate();
+		break;
+	 case QUOTE:
+		if ('|'!=*l++) errx(1, "bad quote.");
+		if (!isspace(*l++)) errx(1, "bad quote.");
+		puts(l);
+		break; }}
 
 int main (int argc, char *argv[])
 {	puts("<html>\n<body>");
