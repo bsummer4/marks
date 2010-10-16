@@ -1,3 +1,4 @@
+// # .1. Numbered lists
 // # TODO Support utf8
 
 #include <err.h>
@@ -12,7 +13,7 @@
 	or a flag for whether a '<li>' has been ommited in the LIST state.
 	the typedef S is only for brevity in literal expressions.
 */
-enum { NONE, P, LIST, OL, QUOTE, HEADER };
+enum { NONE=0, P, LIST, OL, QUOTE, HEADER };
 typedef struct state { int state, n; } S;
 struct state State[9] = {0};
 int Level = 0;
@@ -108,6 +109,7 @@ static void input (char *l)
 		break;
 	 case QUOTE:
 		if ('|'!=*l++) errx(1, "bad quote.");
+		if (!*l) { puts(""); break; }
 		if (!isspace(*l++)) errx(1, "bad quote.");
 		puts(l);
 		break; }}
