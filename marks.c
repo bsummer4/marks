@@ -21,13 +21,13 @@ int Level = 0;
 static void exitstate ()
 {	switch (State[Level].state) {
 	 case NONE: break;
-	 case P: puts("</p>"); break;
+	 case P: puts("\n"); break;
 	 case LIST:
-		if (State[Level].n) puts("</li>");
-		puts("</ul>");
+		if (State[Level].n) puts("");
+		puts("");
 		break;
-	 case QUOTE: puts("</pre>"); break;
-	 case HEADER: printf("</h%d>\n", State[Level].n); break; }
+	 case QUOTE: puts(".DE"); break;
+	 case HEADER: printf("", State[Level].n); break; }
 	State[Level].state = NONE; }
 
 static void enterstate (int s, int n)
@@ -35,10 +35,10 @@ static void enterstate (int s, int n)
 	exitstate();
 	switch (s) {
 	 case NONE: break;
-	 case P: puts("<p>"); break;
-	 case LIST: puts("<ul>"); break;
-	 case QUOTE: puts("<pre>"); break;
-	 case HEADER: printf("<h%d>\n", n); break; }
+	 case P: puts(".LP"); break;
+	 case LIST: puts(""); break;
+	 case QUOTE: puts(".DS L"); break;
+	 case HEADER: printf(".NH %d\n", n); break; }
 	State[Level] = (S){s, n}; }
 
 /* Sets 'Level', handles <blockquote>s, returns l with tabs removed.  */
@@ -46,8 +46,8 @@ static char *indent (char *l)
 {	int c;
 	for (c=0; '\t'==*l; c++,l++);
 	if (c>9) errx(1, "Only 9 levels of indentation are allowed.");
-	while (Level>c) exitstate(),puts("</blockquote>"),Level--;
-	while (Level<c) exitstate(),puts("<blockquote>"),Level++;
+	while (Level>c) exitstate(),puts(".RE"),Level--;
+	while (Level<c) exitstate(),puts(".RS"),Level++;
 	return l; }
 
 static void pedant (char *line)
@@ -76,7 +76,7 @@ static int count (char pre, char *l) {
 static void emit (char *l)
 {	int len=strlen(l), br=(len>=2 && !strcmp(l+(len-2), "\\\\"));
 	if (br) l[len-2]='\0';
-	printf("%s%s\n", l, br?"<br>":""); }
+	printf("%s%s\n", l, br?"\n.BR":""); }
 
 static void input (char *l)
 {	pedant(l);
@@ -97,8 +97,8 @@ static void input (char *l)
 		if (' '!=*l++) errx(1, "bad list.");
 		if (isspace(*l)) errx(1, "bad list.");
 		if (!*n && cont) errx(1, "space w/o list");
-		if (*n && !cont) puts("</li>");
-		if (!cont) puts("<li>");
+		if (*n && !cont) puts("");
+		if (!cont) puts(".IP -");
 		*n=1,emit(l);
 		break; }
 	 case P: emit(l); break;
@@ -115,7 +115,7 @@ static void input (char *l)
 		break; }}
 
 int main (int argc, char *argv[])
-{	puts("<html>\n<body>");
+{	// puts("<html>\n<body>");
 	char buf[80];
 	while (buf[78] = '\0', fgets(buf, 80, stdin)) /* strlen(buf)>0 */
 		if (buf[78] == '\n' || buf[78] == '\0')
@@ -126,5 +126,5 @@ int main (int argc, char *argv[])
 			input(buf); }
 		else errx(1, "A line is longer than 78 bytes.");
 	input("");
-	puts("</body>\n</html>");
+	// puts("</body>\n</html>");
 	return 0; }

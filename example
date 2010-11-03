@@ -36,23 +36,20 @@ Why yes!
 	| lol
 		| No, sir.  You!
 
-.1. Maybe numbered lists
-.2. could look like
-.3. this.
-
-The _'s proceding spaces are just temporary hacks to get the current
-version to accept it.
-
-.0001. A good rule I've been folowing is that different syntax has to be
-_      distinguishable by the first character in the line.  Since lines
-_      starting with numbers are perfectly valid, markdown syntax is
-_      a problem:
-
-	| 1. One
-	| 2. Two
-	|
-	| This is where the number
-	| 1 is used.
-
-.0002. However, lines \\ starting with a . are pretty rare, and it still
-_      looks fair.
+| .1. Maybe numbered lists
+| .2. could look like
+| .3. this.
+|
+| .0001. A good rule I've been folowing is that different syntax has to be
+|        distinguishable by the first character in the line.  Since lines
+|        starting with numbers are perfectly valid, markdown syntax is
+|        a problem:
+|
+| 	| 1. One
+| 	| 2. Two
+| 	|
+| 	| This is where the number
+| 	| 1 is used.
+|
+| .0002. However, lines starting with a . are pretty rare, and it still
+|        looks fair.
