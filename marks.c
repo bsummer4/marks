@@ -20,24 +20,15 @@ int Level = 0;
 
 static void exitstate ()
 {	switch (State[Level].state) {
-	 case NONE: break;
-	 case P: puts("\n"); break;
-	 case LIST:
-		if (State[Level].n) puts("");
-		puts("");
-		break;
-	 case QUOTE: puts(".DE"); break;
-	 case HEADER: printf("", State[Level].n); break; }
+	 case QUOTE: puts(".P2"); break; }
 	State[Level].state = NONE; }
 
 static void enterstate (int s, int n)
 {	if (s==State[Level].state) return;
 	exitstate();
 	switch (s) {
-	 case NONE: break;
 	 case P: puts(".LP"); break;
-	 case LIST: puts(""); break;
-	 case QUOTE: puts(".DS L"); break;
+	 case QUOTE: puts(".P1"); break;
 	 case HEADER: printf(".NH %d\n", n); break; }
 	State[Level] = (S){s, n}; }
 
@@ -66,7 +57,7 @@ static void pedant (char *line)
 			if ('\t'==*c) visual+=7;
 		if (visual>78)
 			errx(1, "A line is visually longer than 78 characters.  "
-		        	"Note that tabs count as 8 characters."); }}
+			        "Note that tabs count as 8 characters."); }}
 
 static int count (char pre, char *l) {
 	int x=0;
@@ -96,9 +87,9 @@ static void input (char *l)
 		bool cont = (' '==*l++);
 		if (' '!=*l++) errx(1, "bad list.");
 		if (isspace(*l)) errx(1, "bad list.");
-		if (!*n && cont) errx(1, "space w/o list");
-		if (*n && !cont) puts("");
-		if (!cont) puts(".IP -");
+		if (!*n && cont) errx(1, "bogus leading spaces");
+		if (*n && !cont);
+		if (!cont) puts(".IP - 2");
 		*n=1,emit(l);
 		break; }
 	 case P: emit(l); break;
@@ -111,6 +102,7 @@ static void input (char *l)
 		if ('|'!=*l++) errx(1, "bad quote.");
 		if (!*l) { puts(""); break; }
 		if (!isspace(*l++)) errx(1, "bad quote.");
+		printf(" ");
 		puts(l);
 		break; }}
 
