@@ -1,0 +1,28 @@
+# Marks
+This is a markup system like Markdown or RestructuredText, but with
+an emphasis on having extremely simple syntax and implementation.
+This file is a valid input for marks.
+
+## Output Format
+Marks produces troff output, and no other back-end will ever be
+considered.  Troff is simple, general, and easy to generate, and it can
+be used to produces ASCII, html, and postscript.  Troff has various
+marco packages, but I haven't finished considering if I can support
+them cleanly.
+
+## Basic Syntax
+The syntax is designed so that the implementation only needs to
+examine one line at a time, and lines have a maximum width of 78 bytes.
+There are four types of syntax besides straight up text: Indentation
+(with tabs), various line prefixes, simple thingy markup within a line,
+and macro annotations.
+
+## Macros and Extension
+| :MACRO: Input, input, input
+|
+| :MACRO: Input, input, input
+| 	Input, input
+| 	Input, input
+| Normal text.
+|
+| This is a line :MACRO:, but we don't have pizza!  :(
