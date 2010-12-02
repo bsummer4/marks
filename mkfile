@@ -2,18 +2,22 @@ CFLAGS = -O0 -g -std=c99
 
 all:V: marks example.html
 show:V: example.html
-	uzbl example.html &
+	psv example.ps &
+	#web file://`pwd`/example.html &
+	less example.ftx
 
 clean:V:
-	rm -f marks *.html *.pdf
+	rm -f marks *.html *.ps *.ftx
 
 
 marks: marks.c
 	gcc $CFLAGS marks.c -o $target
 
 
-%.html %.pdf:D: % marks
+%.ftx %.html %.ps:D: % marks
 	rofftmp=$(mktemp)
-	cat $stem | sed 's/\.\([^.]*\)\. /- \1) /' | ./marks >$rofftmp
+	cat $stem | ./marks >$rofftmp
+	9 troff -ms <$rofftmp | 9 tr2post | 9 psfonts >$stem.ps
+	9 nroff -ms <$rofftmp >$stem.ftx
 	9 htmlroff -ms <$rofftmp >$stem.html
-	9 troff -ms <$rofftmp | 9 tr2post | 9 psfonts | ps2pdf - - >$stem.pdf
+	rm $rofftmp

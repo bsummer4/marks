@@ -23,33 +23,31 @@ though it's not a tautology.
 Why yes!
 
 # Lists
-- a
-	- b
-	- c
-	  c \\
-	  c
-- d
+- LI
+	- LI
+		|	int main (int argc, char *argv[]) {
+		|		puts("This is a c program."); }
+	- END LI
+	  with multiple lines lines lines lines lines lines lines lines
+	  lines lines lines lines lines lines lines lines lines lines
+	  lines lines lines lines lines \\
+	  lines \\
+	  lines!
+		What is up what that really?  I mean, are we really
+		stupid enough as $peplegroup to belive $idea.  What kind
+		of mindless crack-pottery is this?  I mean \\
+		What \\
+		the \\
+		fuck are you guys thinking?
+			Really?
+- END LI
 
-|	int main (int argc, char *argv[]) {
-|		puts("This is a c program."); }
-	| wut
-	| lol
-		| No, sir.  You!
-
-| .1. Maybe numbered lists
-| .2. could look like
-| .3. this.
+## Number Lists and Named Lists
+| .1. Numbered
+| .2. look
+| .3. like
+| .4. this
 |
-| .0001. A good rule I've been folowing is that different syntax has to be
-|        distinguishable by the first character in the line.  Since lines
-|        starting with numbers are perfectly valid, markdown syntax is
-|        a problem:
-|
-| 	| 1. One
-| 	| 2. Two
-| 	|
-| 	| This is where the number
-| 	| 1 is used.
-|
-| .0002. However, lines starting with a . are pretty rare, and it still
-|        looks fair.
+| .named. lists
+| .look.. like
+| .this.. yes
