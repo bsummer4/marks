@@ -1,4 +1,15 @@
-// # TODO Support utf8
+/*
+	# marks
+	This is a translator from the marks language (as defined in
+	README) to troff with the -ms macros.
+*/
+
+// :TODO: Support utf8
+// :TODO: Handle macro syntax
+// :TODO: @ Handle -- phrase lists
+// :TODO: More-correct Output.
+// 	Why are continuation lines and indented lines aligned in the
+// 	output?
 
 #include <err.h>
 #include <stdio.h>
@@ -8,9 +19,11 @@
 #include <assert.h>
 
 /*
-	'n' is the number of an ordered list or the number of a header,
-	or a flag for whether a '<li>' has been ommited in the LIST state.
-	the typedef S is only for brevity in literal expressions.
+	'state.n' is a modifier for 'state.state', it means different
+	things for different states.  For named and unordered lists it
+	represents the number of characters before the text starts,
+	and for headers it represents the header depth.  The typedef
+	'S' is only for brevity in structure literals.
 */
 enum { NONE=0, P, LIST, OL, QUOTE, HEADER };
 typedef struct state { int state, n; } S;
@@ -31,7 +44,10 @@ static void enterstate (int s, int n) {
 	case HEADER: printf(".NH %d\n", n); break; }
 	State[Level] = (S){s, n}; }
 
-/* Sets 'Level', handles <blockquote>s, returns l with tabs removed.  */
+/*
+	Sets 'Level'; outputs indentation codes; returns 'l' with leading
+	tabs removed.
+*/
 static char *indent (char *l) {
 	int c;
 	for (c=0; '\t'==*l; c++,l++);
@@ -57,7 +73,7 @@ static void dotkey (char *buf, int *n, char **key, char **val) {
 		char *w=strchr(*key, ' ');
 		keylen=w?(w-*key):strlen(*key); }
 	*n = keylen+2;
-	/* 2 because keylen doesn't include leading . or trailing ' '.	*/
+	/* 2 because 'keylen' doesn't include leading . or trailing ' '.  */
 	assert(!(*key)[keylen] || ' '==(*key)[keylen]);
 	if (keylen<=1) errx(1, bad, 2);
 	if ('.'==**key) errx(1, bad, 3);
@@ -70,7 +86,7 @@ static void dotkey (char *buf, int *n, char **key, char **val) {
 	*val=(*key)+keylen;
 	if (**val) (*val)++;
 	if (isspace(**val)) errx(1, bad, 5);
-	/* Nulify all '.'s at the end of the key.  */
+	/* Nullify all '.'s at the end of the key.  */
 	while (keylen && '.'==(*key)[keylen-1]) (*key)[--keylen]='\0'; }
 
 static void pedant (char *line) {
@@ -152,7 +168,8 @@ static void input (char *l) {
 			if ('-'!=*l++) errx(1, "bad list.");
 			if (' '!=*l++) errx(1, "bad list.");
 			if (isspace(*l)) errx(1, "bad list.");
-			printf(".IP - 2\n"); /* TODO Should this go in enterstate()? */
+			/* TODO Should this go in enterstate()? */
+			printf(".IP - 2\n");
 			*n=2; }
 		emit(l);
 		break; }
@@ -173,7 +190,8 @@ static void input (char *l) {
 int main (int argc, char *argv[]) {
 	char *last = "The last character must be a newline.";
 	char buf[80];
-	while (buf[78] = '\0', fgets(buf, 80, stdin)) /* strlen(buf)>0 */
+	while (buf[78] = '\0', fgets(buf, 80, stdin))
+		assert(strlen(buf)>0);
 		if (buf[78] == '\n' || buf[78] == '\0') {
 			int l=strlen(buf);
 			if ('\n'!=buf[l-1])
