@@ -40,42 +40,62 @@ static char *indent (char *l) {
 	while (Level<c) exitstate(),puts(".RS"),Level++;
 	return l; }
 
-// TODO Overly complicated.
-static char *sansdotkey (char *buf, int *n) {
-	char *result;
-	if ('.'!=*buf) errx(1, "Invalid ordered list 1");
-	char *w = strchr(buf, ' ');
-	bool nospace = !w;
-	if (nospace) {
-		int last = strlen(buf)-1;
-		if ('.'==buf[last]) { result=buf+last+1; goto end; }
-		else errx(1, "Invalid ordered list 2"); }
-	if (w-1<=buf || w[-1]!='.' || isspace(w[1])) errx(1, "Invalid ordered list 3");
-	*w='\0';
-	result = w+1;
-end:
-	*n = (result - buf);
-	return result; }
+/*
+	This sets *n to the number of characters before the non-key text
+	starts, sets *key to the text of the key with leading and trailing
+	'.'s removed, and sets *val to the beginning of the non-key text.
+	Note that key and val will be pointers into buf, and buf will
+	be modified in undefined ways.
+*/
+static void dotkey (char *buf, int *n, char **key, char **val) {
+	char *bad = "Invalid ordered list %d";
+	if ('.'!=*buf) errx(1, bad, 1);
+	*key = buf+1;
+	/* The length of the key.  Doesn't include the training space.  */
+	int keylen;
+	{
+		char *w=strchr(*key, ' ');
+		keylen=w?(w-*key):strlen(*key); }
+	*n = keylen+2;
+	/* 2 because keylen doesn't include leading . or trailing ' '.	*/
+	assert(!(*key)[keylen] || ' '==(*key)[keylen]);
+	if (keylen<=1) errx(1, bad, 2);
+	if ('.'==**key) errx(1, bad, 3);
+	if ((*key)[keylen-1]!='.') errx(1, bad, 4);
+	/*
+		Set 'val' to the text directly after the key.  Skip the
+		separating space unless the line ends directly after
+		the key.
+	*/
+	*val=(*key)+keylen;
+	if (**val) (*val)++;
+	if (isspace(**val)) errx(1, bad, 5);
+	/* Nulify all '.'s at the end of the key.  */
+	while (keylen && '.'==(*key)[keylen-1]) (*key)[--keylen]='\0'; }
 
 static void pedant (char *line) {
 	char *c;
 	int visual, l;
 	c=line;
 	{
+		char *nospaces =
+		 "No spaces are allowed at the end of a line.";
 		l=strlen(line);
 		if (l && isspace(line[l-1]))
-			errx(1, "No spaces are allowed at the end of a line."); }
+			errx(1, nospaces); }
 	{
+		char *notabs =
+		 "No tabs are allowed except at the beginning of lines.";
 		while ('\t'==*c) c++;
 		if ('|'==*c) return;
 		for (; *c; c++)
 			if ('\t'==*c)
-				errx(1, "No tabs are allowed except at the beginning of lines."); }
+				errx(1, notabs); }
 	{
 		for (c=line,visual=0; *c; c++,visual++)
 			if ('\t'==*c) visual+=7;
 		if (visual>78)
-			errx(1, "A line is visually longer than 78 characters.  "
+			errx(1, "A line is visually longer than 78 characters."
 			        "Note that tabs count as 8 characters."); }}
 
 static int count (char pre, char *l) {
@@ -91,37 +111,50 @@ static void emit (char *l) {
 static void input (char *l) {
 	pedant(l);
 	l=indent(l);
+	bool cont=false;
 	switch(*l) {
 	case '\0': enterstate(NONE, -1); break;
 	case '-': enterstate(LIST, 0); break;
-	case ' ': enterstate(LIST, 0); break;
 	case '.': enterstate(OL, 0); break;
 	case '|': enterstate(QUOTE, -1); break;
 	case '#': enterstate(HEADER, count('#', l)); break;
+	case ' ': {
+		cont = true;
+		int s = State[Level].state;
+		if (LIST!=s && OL!=s) errx(1, "Bogus whitespace");
+		char *over =
+		 "Continuation line has too many leading spaces.";
+		char *under =
+		 "Continuation line doesn't have enough leading spaces.";
+		for (int ii=0; ii<State[Level].n; ii++,l++)
+			if (*l!=' ') errx(1, under);
+		if (*l==' ') errx(1, over);
+		break; }
 	default: enterstate(P, -1); }
 
 	switch (State[Level].state) {
 	case NONE: return;
 	case OL: {
+		static const char *align =
+		 "Text in ordered lists must be aligned.";
 		int *n = &State[Level].n;
-		char *rest = sansdotkey(l, n);
-		char *key = l+1;
-		{
-			int ii;
-			for (ii=strlen(key)-1; ii>=0&&key[ii]=='.'; ii--) key[ii]='\0';
-			if (-1==ii) errx(1, "Invalid ordered list 5"); }
-		printf(".IP %s) %d\n", key, *n-1);
-		emit(rest);
+		char *key=NULL, *value=l;
+		if (!cont) {
+			int stash = *n;
+			dotkey(l, n, &key, &value);
+			if (stash && stash!=*n) errx(1, align); }
+		if (!cont) printf(".IP %s) %d\n", key, *n-1);
+		emit(value);
 		break; }
 	case LIST: {
 		int *n = &State[Level].n;
-		bool cont = (' '==*l++);
-		if (' '!=*l++) errx(1, "bad list.");
-		if (isspace(*l)) errx(1, "bad list.");
-		if (!*n && cont) errx(1, "bogus leading spaces");
-		if (*n && !cont);
-		if (!cont) puts(".IP - 2");
-		*n=2,emit(l);
+		if (!cont) {
+			if ('-'!=*l++) errx(1, "bad list.");
+			if (' '!=*l++) errx(1, "bad list.");
+			if (isspace(*l)) errx(1, "bad list.");
+			printf(".IP - 2\n"); /* TODO Should this go in enterstate()? */
+			*n=2; }
+		emit(l);
 		break; }
 	case P: emit(l); break;
 	case HEADER:
@@ -138,12 +171,13 @@ static void input (char *l) {
 		break; }}
 
 int main (int argc, char *argv[]) {
+	char *last = "The last character must be a newline.";
 	char buf[80];
 	while (buf[78] = '\0', fgets(buf, 80, stdin)) /* strlen(buf)>0 */
 		if (buf[78] == '\n' || buf[78] == '\0') {
 			int l=strlen(buf);
 			if ('\n'!=buf[l-1])
-				errx(1, "The last character must be a newline.");
+				errx(1, last);
 			buf[l-1]='\0';
 			input(buf); }
 		else errx(1, "A line is longer than 78 bytes.");
