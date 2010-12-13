@@ -43,11 +43,12 @@ Why yes!
 - END LI
 
 ## Number Lists and Named Lists
-| .1. Numbered
-| .2. look
-| .3. like
-| .4. this
-|
-| .named. lists
-| .look.. like
-| .this.. yes
+.1. Numbered
+.2. Lists
+.3. Look
+.4. Like
+.5. This
+
+.Named. Lists
+.Look.. Like
+.This.. Yes they do!
