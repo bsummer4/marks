@@ -4,20 +4,22 @@ an emphasis on having extremely simple syntax and implementation.
 This file is a valid input for marks.
 
 ## Output Format
-Marks produces troff output, and no other back-end will ever be
-considered.  Troff is simple, general, and easy to generate, and it can
-be used to produces ASCII, html, and postscript.  Troff has various
-marco packages, but I haven't finished considering if I can support
-them cleanly.
+Marks produces troff code.  Troff is simple, general, and easy to
+generate, and it can be used to produces ASCII, html, and postscript.
+Troff has various marco packages, but I haven't finished considering if
+I can support them cleanly.
 
 ## Basic Syntax
 The syntax is designed so that the implementation only needs to
 examine one line at a time, and lines have a maximum width of 78 bytes.
-There are four types of syntax besides straight up text: Indentation
-(with tabs), various line prefixes, simple thingy markup within a line,
-and macro annotations.
+There are four types of syntax besides straight up text:
 
-## Macros and Extension
+- Indentation (with tabs)
+- Various line prefixes
+- Simple word annotations withing a line
+- Macro annotations.
+
+## Macros
 | :MACRO: Input, input, input
 |
 | :MACRO: Input, input, input
@@ -25,4 +27,13 @@ and macro annotations.
 | 	Input, input
 | Normal text.
 |
-| This is a line :MACRO:, but we don't have pizza!  :(
+| This is a line :MACRO:.
+|
+| This is a word *annotation*.  I have yet to decide what characters are
+| valid for annotations.  Annotations must be around a single word.  They
+| may not span multiple words or multiple lines.  You can annotates more
+| than one word with *{phrase annotations}*.  Curly braces have no special
+| meaning when they are not directly next to an annotation characer.  Both
+| braces must match and be in the same paragraph.  %{*{Phrase annotations}*
+| (yay)}% can be nested.  Annotations are associated with a macro and
+| handled almost the same way as line annotations.
