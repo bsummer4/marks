@@ -90,18 +90,16 @@ static void dotkey (char *buf, int *n, char **key, char **val) {
 	while (keylen && '.'==(*key)[keylen-1]) (*key)[--keylen]='\0'; }
 
 static void pedant (char *line) {
+	char *nospaces = "No spaces are allowed at the end of a line.";
+	char *notabs = "No tabs are allowed except at the beginning of lines.";
 	char *c;
 	int visual, l;
 	c=line;
 	{
-		char *nospaces =
-		 "No spaces are allowed at the end of a line.";
 		l=strlen(line);
 		if (l && isspace(line[l-1]))
 			errx(1, nospaces); }
 	{
-		char *notabs =
-		 "No tabs are allowed except at the beginning of lines.";
 		while ('\t'==*c) c++;
 		if ('|'==*c) return;
 		for (; *c; c++)
@@ -125,6 +123,8 @@ static void emit (char *l) {
 	printf("%s%s\n", l, br?"\n.BR":""); }
 
 static void input (char *l) {
+	char *over = "Continuation line has too many leading spaces.";
+	char *under = "Continuation line doesn't have enough leading spaces.";
 	pedant(l);
 	l=indent(l);
 	bool cont=false;
@@ -138,10 +138,6 @@ static void input (char *l) {
 		cont = true;
 		int s = State[Level].state;
 		if (LIST!=s && OL!=s) errx(1, "Bogus whitespace");
-		char *over =
-		 "Continuation line has too many leading spaces.";
-		char *under =
-		 "Continuation line doesn't have enough leading spaces.";
 		for (int ii=0; ii<State[Level].n; ii++,l++)
 			if (*l!=' ') errx(1, under);
 		if (*l==' ') errx(1, over);
