@@ -186,7 +186,7 @@ static void input (char *l) {
 int main (int argc, char *argv[]) {
 	char *last = "The last character must be a newline.";
 	char buf[80];
-	while (buf[78] = '\0', fgets(buf, 80, stdin))
+	while (buf[78] = '\0', fgets(buf, 80, stdin)) {
 		assert(strlen(buf)>0);
 		if (buf[78] == '\n' || buf[78] == '\0') {
 			int l=strlen(buf);
@@ -194,6 +194,6 @@ int main (int argc, char *argv[]) {
 				errx(1, last);
 			buf[l-1]='\0';
 			input(buf); }
-		else errx(1, "A line is longer than 78 bytes.");
+		else errx(1, "A line is longer than 78 bytes."); }
 	input("");
 	return 0; }
