@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# This programs converts text files into simple, preformatted html files.
+# The files should look the same except URLs will become links.
+#
+# :TODO: Do sanitisation properly.
+
+sane () { sed 's/</\&lt;/;s/>/\&gt;/'; }
+html () {
+	sed '
+		1i<html\>\<body\>\<pre\>
+		s|\([a-z][a-z]*://[^ ][^ ]*\)|<a href="\1">\1</a>|g
+		$a</pre></body></html>'; }
+
+sane|html

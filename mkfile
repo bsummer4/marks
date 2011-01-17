@@ -20,5 +20,5 @@ marks: marks.c
 	./marks <$stem >$rofftmp
 	9 troff -ms <$rofftmp | 9 tr2post | 9 psfonts >$stem.ps
 	9 nroff -ms <$rofftmp >$stem.ftx
-	9 htmlroff -ms <$rofftmp >$stem.html
+	./htmlize <$stem >$stem.html
 	rm $rofftmp

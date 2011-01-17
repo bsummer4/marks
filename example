@@ -1,5 +1,5 @@
-Note that this file is not designed to be pretty.  It is designed to
-show how 'marks' reacts to various valid inputs.
+Note that this file is not designed to be pretty.  It is designed to be
+a valid file that exposes weird corner-cases in the syntax.
 
 # Pretty
 This is a paragraph.  It is pretty.
@@ -25,8 +25,8 @@ Why yes!
 # Lists
 - LI
 	- LI
-		|	int main (int argc, char *argv[]) {
-		|		puts("This is a c program."); }
+		| 	int main (int argc, char *argv[]) {
+		| 		puts("This is a c program."); }
 	- END LI
 	  with multiple lines lines lines lines lines lines lines lines
 	  lines lines lines lines lines lines lines lines lines lines
@@ -40,6 +40,8 @@ Why yes!
 		the \\
 		fuck are you guys thinking?
 			Really?
+	- Here are some characters:
+		| <html>
 - END LI
 
 ## Number Lists and Named Lists
@@ -53,3 +55,5 @@ Why yes!
          look
 .Like... This
 .Does...
+
+http://google.com is a pretty cool website.

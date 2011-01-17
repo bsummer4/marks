@@ -16,7 +16,7 @@ There are four types of syntax besides straight up text:
 
 - Indentation (with tabs)
 - Various line prefixes
-- Simple word annotations withing a line
+- Simple word annotations within a line
 - Macro annotations.
 
 ## Macros
