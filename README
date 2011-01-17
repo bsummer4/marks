@@ -1,3 +1,6 @@
+:TODO: Finalize the syntax.
+:TODO: Rewrite this document so that it doesn't suck.
+
 # Marks
 This is a markup system like Markdown or RestructuredText, but with
 an emphasis on having extremely simple syntax and implementation.
