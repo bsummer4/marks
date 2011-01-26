@@ -9,7 +9,7 @@ sane () { sed 's/</\&lt;/;s/>/\&gt;/'; }
 html () {
 	sed '
 		1i<html\>\<body\>\<pre\>
-		s|\([a-z][a-z]*://[^ ][^ ]*\)|<a href="\1">\1</a>|g
+		s|\([a-z][a-z]*:[^ ][^ ]*\)|<a href="\1">\1</a>|g
 		$a</pre></body></html>'; }
 
 sane|html
