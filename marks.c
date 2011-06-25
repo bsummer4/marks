@@ -2,21 +2,47 @@
 	# marks
 	This is a translator from the marks language (as defined in
 	README) to troff with the -ms macros.
+
+	## Unicode support
+	utf8 is used for input, output, and internal processing. Since
+	there are no sane libraries for unicode, we have to handle
+	everything ourselves. It's complicated and annoying.
+
+	## TODO
+	:TODO: Support utf8 better
+		- :TODO: multicol chars
+			Some unicode chars fill two or even zero
+			columns. The current code assumes they all fill
+			exactly one.
+
+	:TODO: Reject unprintable characters (use `isprint(3)').
+	:TODO: Handled `inline-quoted-text'.
+	:TODO: Handle macro syntax
+	:TODO: Separate processing and output code.
+	:TODO: More-correct Output.
+		Why are continuation lines and indented lines aligned
+		in the output?
 */
 
-// :TODO: Support utf8
-// :TODO: Handle macro syntax
-// :TODO: @ Handle -- phrase lists
-// :TODO: More-correct Output.
-// 	Why are continuation lines and indented lines aligned in the
-// 	output?
-
-#include <err.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdbool.h>
-#include <string.h>
 #include <assert.h>
+#include <ctype.h>
+#include <err.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+#define S static
+#define SI static inline
+#define nil NULL
+
+#define UTF8MAX 6
+#define BUFSIZE UTF8MAX*78+2
+#define UTF8LEN(ch) ((unsigned char)ch>=0xFC ? 6 : \
+                     ((unsigned char)ch>=0xF8 ? 5 : \
+                      ((unsigned char)ch>=0xF0 ? 4 : \
+                       ((unsigned char)ch>=0xE0 ? 3 : \
+                        ((unsigned char)ch>=0xC0 ? 2 : 1)))))
 
 /*
 	'state.n' is a modifier for 'state.state', it means different
@@ -26,29 +52,29 @@
 	'S' is only for brevity in structure literals.
 */
 enum { NONE=0, P, LIST, OL, QUOTE, HEADER };
-typedef struct state { int state, n; } S;
-struct state State[9] = {0};
-int Level = 0;
+typedef struct state { int state, n; } St;
+S struct state State[9] = {0};
+S int Level = 0;
 
-static void exitstate () {
+S void exitstate () {
 	switch (State[Level].state) {
 	case QUOTE: puts(".P2"); break; }
 	State[Level].state = NONE; }
 
-static void enterstate (int s, int n) {
+S void enterstate (int s, int n) {
 	if (s==State[Level].state) return;
 	exitstate();
 	switch (s) {
 	case P: puts(".LP"); break;
 	case QUOTE: puts(".P1"); break;
 	case HEADER: printf(".NH %d\n", n); break; }
-	State[Level] = (S){s, n}; }
+	State[Level] = (St){s, n}; }
 
 /*
 	Sets 'Level'; outputs indentation codes; returns 'l' with leading
 	tabs removed.
 */
-static char *indent (char *l) {
+S char *indent (char *l) {
 	int c;
 	for (c=0; '\t'==*l; c++,l++);
 	if (c>9) errx(1, "Only 9 levels of indentation are allowed.");
@@ -63,7 +89,7 @@ static char *indent (char *l) {
 	Note that key and val will be pointers into buf, and buf will
 	be modified in undefined ways.
 */
-static void dotkey (char *buf, int *n, char **key, char **val) {
+S void dotkey (char *buf, int *n, char **key, char **val) {
 	char *bad = "Invalid ordered list %d";
 	if ('.'!=*buf) errx(1, bad, 1);
 	*key = buf+1;
@@ -89,40 +115,55 @@ static void dotkey (char *buf, int *n, char **key, char **val) {
 	/* Nullify all '.'s at the end of the key.  */
 	while (keylen && '.'==(*key)[keylen-1]) (*key)[--keylen]='\0'; }
 
-static void pedant (char *line) {
+/*
+	The number of columns taken by a UTF-8 string. We assume 8-column
+	tabstops.
+
+	:TODO: Tricky
+		Make sure this `unsigned char' business is correct.
+*/
+SI unsigned cols (unsigned char *str) {
+	char *utfe= "Unicode support is planned but not written.";
+	unsigned chr,c=0;
+	while (*str) {
+		chr=*str;
+		c += ('\t'!=chr?1:8-c%8);
+		/*
+			:TODO: Huge Fucking Security Hole!
+				This *HAS* to be validated!
+		*/
+		str += UTF8LEN(*str);
+	}
+	while ((chr=*str++))
+		if (127<chr) errx(1,utfe);
+	return c; }
+
+S void pedant (char *line) {
 	char *nospaces = "No spaces are allowed at the end of a line.";
 	char *notabs = "No tabs are allowed except at the beginning of lines.";
 	char *c;
-	int visual, l;
+	int l;
 	c=line;
-	{
-		l=strlen(line);
-		if (l && isspace(line[l-1]))
-			errx(1, nospaces); }
-	{
-		while ('\t'==*c) c++;
-		if ('|'==*c) return;
-		for (; *c; c++)
-			if ('\t'==*c)
-				errx(1, notabs); }
-	{
-		for (c=line,visual=0; *c; c++,visual++)
-			if ('\t'==*c) visual+=7;
-		if (visual>78)
-			errx(1, "A line is visually longer than 78 characters."
-			        "Note that tabs count as 8 characters."); }}
+	fprintf(stderr, "cols: %d len: %d\n", cols(line), strlen(line));
+	if (78<cols(line)) errx(1,"All lines must fit within 78 columns");
+	l=strlen(line);
+	if (l && isspace(line[l-1]))
+		errx(1, nospaces);
+	while ('\t'==*c) c++;
+	if ('|'==*c) return;
+	for (; *c; c++) if ('\t'==*c) errx(1, notabs); }
 
-static int count (char pre, char *l) {
+S int count (char pre, char *l) {
 	int x=0;
 	while (pre==*l++) x++;
 	return x; }
 
-static void emit (char *l) {
+S void emit (char *l) {
 	int len=strlen(l), br=(len>=2 && !strcmp(l+(len-2), "\\\\"));
 	if (br) l[len-2]='\0';
 	printf("%s%s\n", l, br?"\n.BR":""); }
 
-static void input (char *l) {
+S void input (char *l) {
 	char *over = "Continuation line has too many leading spaces.";
 	char *under = "Continuation line doesn't have enough leading spaces.";
 	pedant(l);
@@ -147,7 +188,7 @@ static void input (char *l) {
 	switch (State[Level].state) {
 	case NONE: return;
 	case OL: {
-		static const char *align =
+		S const char *align =
 		 "Text in ordered lists must be aligned.";
 		int *n = &State[Level].n;
 		char *key=NULL, *value=l;
@@ -183,17 +224,25 @@ static void input (char *l) {
 		puts(l);
 		break; }}
 
+/*
+	Returns a pointer to static memory.
+*/
+SI char *getline () {
+	char *errlast = "The last character of every file must be a newline.";
+	const int last = BUFSIZE-2;
+	S char buf[BUFSIZE];
+	buf[last]='\0';
+	if (!fgets(buf, BUFSIZE, stdin)) return nil;
+	assert(0<strlen(buf));
+	if ('\n'!=buf[last] && '\0'!=buf[last])
+		errx(1, "Lines must take less than %d bytes.", BUFSIZE-1);
+	int l=strlen(buf);
+	if ('\n'!=buf[l-1]) errx(1, errlast);
+	buf[l-1]='\0';
+	return buf; }
+
 int main (int argc, char *argv[]) {
-	char *last = "The last character must be a newline.";
-	char buf[80];
-	while (buf[78] = '\0', fgets(buf, 80, stdin)) {
-		assert(strlen(buf)>0);
-		if (buf[78] == '\n' || buf[78] == '\0') {
-			int l=strlen(buf);
-			if ('\n'!=buf[l-1])
-				errx(1, last);
-			buf[l-1]='\0';
-			input(buf); }
-		else errx(1, "A line is longer than 78 bytes."); }
+	char *line;
+	while ((line=getline())) input(line);
 	input("");
 	return 0; }

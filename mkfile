@@ -1,5 +1,3 @@
-CFLAGS = -O0 -g -std=c99
-
 all:V: marks example.html
 show:V: example.html
 	psv example.ps &
@@ -9,10 +7,8 @@ show:V: example.html
 clean:V:
 	rm -f marks *.html *.ps *.ftx
 
-
 marks: marks.c
-	gcc $CFLAGS marks.c -o $target
-
+	c99 marks.c -o $target
 
 %.ftx %.html %.ps:D: % marks
 	touch $target # So mk can delete it if something fails.
