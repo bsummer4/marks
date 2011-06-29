@@ -36,43 +36,43 @@ backslash followed by any character besides `[\\\`\']' is an error.
 The brackets used to make word-sequences must match in a given chunk.
 
 ## Grammar
-| empty > /^$/
-| align > /^ +/
-| space > / /
-| eol   > /$/
+| empty → /^$/
+| align → /^ +/
+| space → / /
+| eol   → /$/
 
-| bullet > /^-/
-| name   > /^_{bword}_+/
-| hdr    > /^#+/
-| banno  > /^::[A-Z]+::/
-| lit    > /^\|( .*[^\t ])?$/
+| bullet → /^-/
+| name   → /^_{bword}_+/
+| hdr    → /^#+/
+| banno  → /^::[A-Z]+::/
+| lit    → /^\|( .*[^\t ])?$/
 
-| seq   > /"{"/
-| eseq  > /"}"/
-| anno  > /:[A-Z]+:/
-| bword > /[^ \t\n`"{}\[\]]*[^ \t\n`"{}\[\].,:;!?]/
-| qword > {Special Case}
-| ref   > /"["{bword}"]"/
-| word  > /{bword}|{qword}|{ref}|{anno}/
-| pword > /[.,:;!?]/
+| seq   → /"{"/
+| eseq  → /"}"/
+| anno  → /:[A-Z]+:/
+| bword → /[^ \t\n`"{}\[\]]*[^ \t\n`"{}\[\].,:;!?]/
+| qword → {Special Case}
+| ref   → /"["{bword}"]"/
+| word  → /{bword}|{qword}|{ref}|{anno}/
+| pword → /[.,:;!?]/
 
-| Word > word | word pword | seq | eseq
-| ParaLine > Word space ParaLine
+| Word → word | word pword | seq | eseq
+| ParaLine → Word space ParaLine
 |          | Word eol
 
-| Hdr > hdr space ParaLine
-| Para > ParaLine Para |
-| Anno > banno space ParaLine
-| Blist > bullet space ParaLine Blist_
-| Blist_ > align ParaLine Blist_ |
-| Nlist > name space ParaLine Nlist_
-| Nlist_ > align space ParaLine Nlist_ |
-| Lit > Lit lit | lit
-| Chunk > Nlist | Blist | Para | Lit | Anno
+| Hdr → hdr space ParaLine
+| Para → ParaLine Para |
+| Anno → banno space ParaLine
+| Blist → bullet space ParaLine Blist_
+| Blist_ → align ParaLine Blist_ |
+| Nlist → name space ParaLine Nlist_
+| Nlist_ → align space ParaLine Nlist_ |
+| Lit → Lit lit | lit
+| Chunk → Nlist | Blist | Para | Lit | Anno
 
-| NestSect > Chunk INDENT NestSect_ UNDENT
+| NestSect → Chunk INDENT NestSect_ UNDENT
 |          | Chunk empty
 |          | Chunk EOF
-| NestSect_ > NestSect_ NestSect | NestSect
-| Sect > Hdr | NestSect | Hdr EOF
-| Marks > Marks Sect |
+| NestSect_ → NestSect_ NestSect | NestSect
+| Sect → Hdr | NestSect | Hdr EOF
+| Marks → Marks Sect |

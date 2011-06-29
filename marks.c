@@ -199,6 +199,7 @@ S void input (char *l) {
 		if (!cont) printf(".IP %s) %d\n", key, *n-1);
 		emit(value);
 		break; }
+
 	case LIST: {
 		int *n = &State[Level].n;
 		if (!cont) {
@@ -210,12 +211,14 @@ S void input (char *l) {
 			*n=2; }
 		emit(l);
 		break; }
+
 	case P: emit(l); break;
 	case HEADER:
 		while ('#'==*l) l++;
 		if (' '!=(*l++)) errx(1, "bad header.");
 		puts(l),exitstate();
 		break;
+
 	case QUOTE:
 		if ('|'!=*l++) errx(1, "bad quote.");
 		if (!*l) { puts(""); break; }
