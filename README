@@ -1,150 +1,30 @@
-# Marks
-## Introduction
-`marks' is a {light-weight markup language} like Markdown or
-RestructuredText. Unlike most of these languages, which are designed
-primarily for generating HTML and/or typesetting books, `marks' is meant to
-be produced and concumed primarly as plain text. This document is a valid
-`marks' document.
+# marks
+This contains the specification for the `marks' language (as defined in
+`SPEC'), and a set of translators from the `marks' language to various
+other markup languages.
 
-Here are some goals for the format:
-	- {Simplicity}: The syntax should only be a handful of well
-	  thought-out features, and it should not be open for extension.
-	  There should be some non-intrusive mechanism for allowing domain
-	  concepts.
-	- {Canonical Representation}: There should be a single valid
-	  representation for all documents. This way all documents look
-	  the same regardless of who (or what program) created them. One
-	  advantage of this is that it makes it possible to write simple
-	  programs that do fine-grained transformations without having to
-	  constantly edit their output.
-	- {Useful}: I want to keep everything in `marks' so it can't be too
-	  annoying or too limited.
+## TODO
+:TODO: Support utf8 better
+	:TODO: multicol chars
+		Some unicode chars fill two or even zero columns. The
+		current code assumes they all fill exactly one.
 
-The following programs are planned:
-	- `marks': Validate or canonicalize a `marks' documents.
-	- `marks2': Generate output in various formats. Uses a simple
-	  DSL to specify how to generate each output format.
-		At least `HTML', `troff', `espeak', and `markdown'
-		should be included. The DSL also lets you specify how
-		to handle macros.
+:TODO: Reject unprintable characters (use `isprint(3)').
+:TODO: Break up words in `words'.
+:TODO: Handled `inline-quoted-text'.
+:TODO: Handle macro syntax
+:TODO: More-correct Output.
+	Why are continuation lines and indented lines aligned in the
+	output?
 
-## Syntax
-Since `marks' defines a canonical representation, the syntax is very
-rigid. In general, `marks' documents contain text which is formatted into
-headers and possibly-indented chunks. Chunks may be: paragraphs, named
-lists, bulleted lists, sections of literal text, and section annotations.
+:TODO: Annotation Separation
+	Annotation without sub-chunks must not be separated from other
+	annotations, but must be separated from other things.
 
-For examples, see all the documents in this directory. For a full
-description see [SPEC].
+:TODO: `NLIST' in `input()':
+	It doesn't work with unicode items in named lists.
 
-:TODO: Loose description of all the syntax
-	{References} are {basic words} enclosed in square brackets. These
-	are meant to be used for referencing external documents or
-	internal sections, but the semantics are unspecified. Here are
-	some examples of references:
-		- [hi]
-		- [Fig.1]
-		- [google.com]
-		- [/bin/sh]
-		- [http://www.google.com]
+:TODO: `ANNO' in `input()':
+	It's a stub.
 
-	In this document I use footnotes like this:
-		| Some not-quite-true statement [1].
-		|
-		| ...
-		|
-		| ::NOTE:: 1
-		| 	A clarification
-
-	{Quoted text} is Free-form text wrapped in back-quote/single-quote
-	pairs. Quotations may be nested and the delimiters must
-	match. Quoted sections may not span multiple lines. Here are
-	some examples of quoted text words:
-		- `quoted word'
-		- `they `can `be `nested!''''
-		- `  arbitrary   spacing  is...     fine'
-
-	{Word Sequences}, generally, are lines containing multiple words
-	separated by a single space. Some forms (paragraphs and lists for
-	example) define ways for word sequences to span multiple lines,
-	but we'll ignore that for now. Word sequences may be nested by
-	wrapping sequences of words inside curly-brackets.
-
-	To make English text look OK, there is a special-case for
-	punctuation characters. For example, if you follow the above
-	rules, sentences ending with links would need to look like this:
-		| To find stuff, go to [http://www.google.com] .
-
-	Since the link and the period are two distinct words, they need
-	to be separated be a space. This is unacceptably cumbersome,
-	so we add a spacial-case where a words that are built entierly
-	from whitespace characters are not proceded by whitespace.
-
-	{Word Annotations} consist of an annotation and a word annotations
-	look like this: `:ANNO:', and they modify the next word in a word
-	sequence in some unspecified way. These are indented to allow
-	bits of semantic information to be included in an ad-hoc way
-	without bloating `marks' itself. Here are a couple of examples:
-		| .Steve. Hi there :FRIEND: Fred, how life?
-		| .Fred.. Oh, it's going alright.
-		| .Steve. Cool, well I've got to go talk to :FRIEND: Sally
-
-		| - :TODO: {Eat some tuna}
-		| - :TODO: {Eat some carrots}
-
-	h ### Spacing
-	All lines must contain fewer than 80 {printed characters}. Not all
-	characters fill only a single {printed character.} For example,
-	tabs are 8 {printed characters} [1], and some unicode characters
-	also are wider than normal characters. All spacing characters
-	besides newline, tab, and space are banned. Tabs may only be used
-	for indentation and inside quoted text. Spaces must never occur
-	in groups of two or more except when they are being used to align
-	lists. Furthermore, no line may ever end with a tab or a space.
-
-	::NOTE:: 1
-		Technically tabs fill to the next multiple of 8
-		characters, but tabs are only allowed at the beginning
-		of lines, so it's irrelavant.
-
-	h ### Section Headers
-
-	- Sections headers have one or more `#' characters at the
-	  beginning of a line, followed by a single space and one or
-	  more words.
-	- A single hash (`#') indicates a top-level header and headers
-	  with more hashes indicate subheaders.
-	- Headers may not {jump} down levels, each sub-header must be
-	  preceded by a header of the next-highest level.
-	- Headers may not be included in indented sections.
-
-	h ### Paragraphs
-	Paragraphs are {word sequences} that span mulitple lines. You are
-	reading a paragraph. Paragraphs may be indented using tabs, but
-	never contain leading spaces. Adjacent paragraphs are separated
-	by a single empty line. Each lines in a paragraph must use as
-	much horizontal space as possible.
-
-	h ### Section Annotaions
-	These are similar to {Word Annotations} except they happen
-	in-between paragraphs and lists. Anything indented {within}
-	a {section annotation} is considered to be part of it. Here is
-	an example:
-		| ::TODO:: Write an example
-		| 	There should be an example to show what section
-		| 	annotations look like... Write one.
-
-## Using `marks'
-::TODO:: Write this
-
-### Writing Text
-::TODO:: Write this
-
-### Semantics
-::TODO:: Write this
-
-### Processing
-::TODO:: Write this
-
-#### Guidelines for programs that manipulate `marks' documents
-::TODO:: Write this
+:TODO: Do comprehensive validation in `recognize()'.

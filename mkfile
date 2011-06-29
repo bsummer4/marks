@@ -1,20 +1,9 @@
-all:V: marks example.html
-show:V: example.html
-	psv example.ps &
-	#web file://`pwd`/example.html &
-	less example.ftx
-
+all:V: o.marks2tokens README.toks SPEC.toks INTRO.toks
 clean:V:
-	rm -f marks *.html *.ps *.ftx
+	rm -f marks *.toks *.o o.*
 
-marks: marks.c
-	c99 marks.c -o $target
+o.marks2%: marks.c 2%.c
+	c99 marks.c 2$stem.c -o $target
 
-%.ftx %.html %.ps:D: % marks
-	touch $target # So mk can delete it if something fails.
-	rofftmp=$(mktemp)
-	./marks <$stem >$rofftmp
-	9 troff -ms <$rofftmp | 9 tr2post | 9 psfonts >$stem.ps
-	9 nroff -ms <$rofftmp >$stem.ftx
-	./htmlize <$stem >$stem.html
-	rm $rofftmp
+%.toks: o.marks2tokens %
+	./o.marks2tokens <$stem >$target
