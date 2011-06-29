@@ -20,6 +20,7 @@
 */
 typedef enum {QUOTED,PLAIN,LINK,GROUP,ENDGROUP,WS} Wtype;
 typedef struct { Wtype t; char *w; } Word;
+void BEGIN(); void END();
 void indent(); void undent(); void hdr(); void para();
 void blist(); void nlist(); void lit(); void anno();
 void item(char*); void bullet(); void hdrdepth(int); void word(Word);

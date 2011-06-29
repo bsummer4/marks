@@ -183,6 +183,8 @@ S void input (char *l) {
 
 int main (int argc, char *argv[]) {
 	char *line;
+	BEGIN();
 	while ((line=getline())) input(line);
 	input("");
+	END();
 	return 0; }

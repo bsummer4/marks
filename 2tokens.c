@@ -1,5 +1,7 @@
 #include "marks.h"
 
+void BEGIN() { puts("BEGIN"); }
+void END() { puts("END"); }
 void indent() { puts("INDENT"); }
 void undent() { puts("UNDENT"); }
 

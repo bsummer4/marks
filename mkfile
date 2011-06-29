@@ -1,9 +1,16 @@
-all:V: o.marks2tokens README.toks SPEC.toks INTRO.toks
+MKSHELL = /opt/plan9/bin/rc
+backends = tokens html
+docs = `{ls | egrep '^[A-Z]+$'}
+targets = `{echo o.marks2$backends; for (d in $docs) echo $d.$backends}
+
+all:V: $targets
 clean:V:
-	rm -f marks *.toks *.o o.*
+	rm -f $targets *.o
 
-o.marks2%: marks.c 2%.c
-	c99 marks.c 2$stem.c -o $target
-
-%.toks: o.marks2tokens %
-	./o.marks2tokens <$stem >$target
+o.marks2%: marks.o 2%.o
+%.o: %.c
+	c99 -c $stem.c
+o.%:
+	c99 $prereq -o $target
+([A-Z]+)\.([a-z]+):R: o.marks2\2 \1
+	./o.marks2$stem2 <$stem1 >$target
