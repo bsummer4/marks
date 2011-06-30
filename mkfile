@@ -9,7 +9,7 @@ clean:V:
 
 o.marks2%: marks.o 2%.o
 %.o: %.c
-	c99 -c $stem.c
+	c99 -O -c $stem.c
 o.%:
 	c99 $prereq -o $target
 ([A-Z]+)\.([a-z]+):R: o.marks2\2 \1
