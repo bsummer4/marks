@@ -1,24 +1,20 @@
 #!/opt/plan9/bin/rc -e
-
 d = $repo/think
-shit = (\
- RESUME SAM LINKED SAMPLA-BANGU SAMPLA-BENDE TCADU-LIST \
- `{cd $d; ls |egrep '^[A-Z]+$' | shuf}\
-)
-
+shit = `{cd $d; ls |egrep '^[A-Z]+$' | shuf}
 fn link { echo '<a href="'$1'">'$2'</a>'; }
 
 mk o.marks2html
 for (f in $shit) {
 	o=$d/.web/$f; i=$d/$f
 	if (test -f $i) {
+		echo building $f
 		{echo '<hr>'
 		 echo -n `{link $f text} '| '
 		 echo -n `{link $f.ps ps} '| '
 		 echo -n `{link $f.html html} '| '
 		 echo `{link $f.pdf pdf} '<hr>'
 		./o.marks2html <$i
-		} >$o.html || echo '==' $f '=='
+		} >$o.html || echo FAIL
 		cat <$i >$o }}
 
-chromium `{for (f in $shit) echo $d/.web/$f.html}
+chromium `{for (f in $shit) echo $d/.web/$f.html} &
