@@ -13,6 +13,8 @@ int TODO=9000;
                        ((unsigned char)ch>=0xE0 ? 3 : \
                         ((unsigned char)ch>=0xC0 ? 2 : 1)))))
 
+void badspace() { BAD("Bogus whitespace"); }
+
 /*
 	The number of columns taken by a UTF-8 string. We assume 8-column
 	tabstops.
@@ -92,7 +94,61 @@ const char *overalign =
 const char *underalign =
 	"Continuation line doesn't have enough leading spaces.";
 
-void words(char *line) { word((Word){PLAIN,line}); }
+bool firstline=false;
+void words(char *line) {
+	bool cont=false;
+	char *next=line;
+	if (!firstline) word((Word){WS,nil});
+loop:
+	line=next;
+	char *spc=strchr(line,' ');
+	if (spc) next=spc+1;
+	else next=line+strlen(line);
+
+	switch (*line) {
+	case 0: return;
+	case ' ': badspace();
+	case '{': word((Word){GROUP,nil}); next=line+1,cont=false; goto loop;
+	case '[': {
+		char *term = strchr(line,']');
+		if (!term) BAD("Non-terminated link");
+		*term='\0';
+		word((Word){LINK,line+1});
+		if ('\0'!=term[1] && ' '!=term[1]) cont=true,next=term+1;
+		else cont=false;
+		break; }
+
+	case '`': {
+		char *end=line, *to, *from;
+	slurp:
+		end = strchr(end,'\'');
+		if (!end) BAD("Unterminated quoted character.");
+		if ('\''==end[1]) {end+=2; goto slurp;}
+		*end='\0';
+		line++;
+		for (to=from=line; *to=*from; to++,from++)
+			if ('\''==*from) from++;
+
+		word((Word){QUOTED,line});
+		cont=true,next=end+1;
+		if (' '==*next) cont=false,next++,word((Word){WS,nil});
+		goto loop; }
+
+	default: {
+		if (spc) *spc='\0';
+		if (strchr(line,'{')) BAD("Bogus '{'");
+		int count=0; char *trail;
+		for (trail=strchr(line,'}'); trail && '}'==*trail; trail++)
+			*trail='\0',count++;
+		if (trail && strchr(trail,'}')) BAD("Bogus '}'");
+		if (*line) word((Word){PLAIN,line});
+		else if (!cont) BAD("Groups may not be empty");
+		for (int i=0;i<count;i++) word((Word){ENDGROUP,nil});
+		if (trail && *trail) word((Word){PLAIN,trail});
+		if (spc) word((Word){WS,nil});
+		cont=false; }}
+
+	goto loop; }
 
 /*
 	Returns a pointer to the key. This will be a pointer into the
@@ -153,12 +209,12 @@ S void recognize (int tabs, char *l) {
 	switch (*l) {
 	case '\0': TR(Cur.depth,BLANK,0); break;
 	case '-': TR(tabs,BLIST,2); break;
-	case '.': TR(tabs,NLIST,TODO); break;
+	case '.': TR(tabs,NLIST,4); break; // TODO That 4 is a hack.
 	case ':': TR(tabs,ANNO,TODO); break;
 	case '|': TR(tabs,LIT,0); break;
 	case '#': TR(tabs,HDR,0); break;
 	case ' ': {
-		if (!Cur.align) BAD("Bogus whitespace");
+		if (!Cur.align) badspace();
 		int align = count(' ',l);
 		if (align > Cur.align) BAD(overalign);
 		if (align < Cur.align) BAD(underalign);
@@ -174,7 +230,7 @@ S void input (char *l) {
 	case BLIST: if (*l=='-') bullet(); words(l+Cur.align); break;
 	case NLIST: {
 		char *body;
-		if (*l=='.') item(dotkey(l,&body)); words(l+1+Cur.align);
+		if (*l=='.') item(dotkey(l,&body)); words(l+Cur.align);
 		break; }
 	case P: words(l); break;
 	case LIT: qline(l+2); break;
