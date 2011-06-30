@@ -22,7 +22,7 @@ void word(Word w) {
 	case QUOTED: pre="QUOTED WORD\n\t"; break;
 	case PLAIN: pre="PLAIN WORD\n\t"; break;
 	case LINK: pre="LINK\n\t"; break;
-	case GROUP: w.w=""; break;
-	case ENDGROUP: w.w=""; break;
+	case GROUP: w.w="{"; break;
+	case ENDGROUP: w.w="}"; break;
 	case WS: w.w="SPACE"; break; }
 	printf("%s%s\n", pre, w.w); }

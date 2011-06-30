@@ -20,10 +20,39 @@ void item(char *l) { printf("<li>"); }
 void bullet() { printf("<li>"); }
 void qline(char *line) { printf("| <b><font color=red>%s</font></b>\n",line); }
 void word(Word w) {
-	printf("%s%s\n",w.w,((!tagstr || 'h'==*tagstr)?"":"<br/>")); }
+	static int gdepth=0;
+	switch (w.t) {
+	case LINK:
+		printf("[<a href=\"%s\">%s</a>]",w.w,w.w);
+		break;
+
+	case GROUP:
+		printf("<tt>{</tt>");
+		switch (gdepth++) {
+		case 0: printf("<u>"); break;
+		case 1: printf("<i>"); break;
+		case 2: printf("<b>"); break; }
+		break;
+
+	case WS: printf(" "); break;
+	case ENDGROUP:
+		switch (--gdepth) {
+		case 0: printf("</u>"); break;
+		case 1: printf("</i>"); break;
+		case 2: printf("</b>"); break; }
+		printf("<tt>}</tt>"); break;
+	case QUOTED:
+		printf("<tt>`<u>");
+		for (char *c=w.w; *c; c++)
+			if (' '==*c) printf("&nbsp;");
+			else putchar(*c);
+		printf("</u>'</tt>");
+		break;
+	default: printf("%s",w.w); }}
 
 void hdrdepth(int i) {
 	static char htag[3];
 	snprintf(htag,3,"h%d",i);
 	TAG(htag);
-	for (;i;i--) printf("#"); printf(" "); }
+	printf("<tt>");
+	for (;i;i--) printf("#"); printf("</tt> "); }
