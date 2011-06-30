@@ -1,4 +1,4 @@
-# marks
+# `marks' Repository
 This contains the specification for the `marks' language (as defined in
 `SPEC'), and a set of translators from the `marks' language to various
 other markup languages.

@@ -1,4 +1,4 @@
-# Marks
+# `marks' Specification
 Marks is a canonical format for text documents. This document specifies
 the syntax of `marks' documents using regular expressions, a context-free
 grammar, and a handful of special cases.
@@ -29,9 +29,8 @@ one level, then more than one token will be generated.
 Annotation words must always be followed by a word or a word sequence in
 the same paragraph but not necessary in the same line.
 
-Quoted words take the form: ``word'', except that quotations may be nested
-and both of the quotations characters may be escaped with `\\'. Using a
-backslash followed by any character besides `[\\\`\']' is an error.
+Quoted words take the form: `word', single-quote characters can be escaped
+through doubling. For example: `''', and `'''''.
 
 The brackets used to make word-sequences must match in a given chunk.
 

@@ -1,5 +1,5 @@
-# Marks
-## Introduction
+# `marks' Introduction
+## Overview
 `marks' is a {light-weight markup language} like Markdown or
 RestructuredText. Unlike most of these languages, which are designed
 primarily for generating HTML and/or typesetting books, `marks' is meant to
@@ -60,9 +60,10 @@ description see [SPEC].
 	pairs. Quotations may be nested and the delimiters must
 	match. Quoted sections may not span multiple lines. Here are
 	some examples of quoted text words:
-		- `quoted word'
-		- `they `can `be `nested!''''
-		- `  arbitrary   spacing  is...     fine'
+		- `quoted word'.
+		- The single-quote character `('')' can be included
+		  by doubling.
+		- `  arbitrary   spacing  is...     fine'.
 
 	{Word Sequences}, generally, are lines containing multiple words
 	separated by a single space. Some forms (paragraphs and lists for
