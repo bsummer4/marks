@@ -1,0 +1,10 @@
+#!/bin/awk -f
+# This removed extraneous newlines from a poorly generated marks file.
+
+BEGIN { blank=0; front=1; hdr=0 }
+/^$/ { blank=1; next }
+{
+	if (blank && !front && !hdr) print ""
+	front=0; blank=0; hdr=0;
+	print }
+/^#+ / { hdr=1 }
