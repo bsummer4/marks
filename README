@@ -4,12 +4,34 @@ This contains the specification for the `marks' language (as defined in
 other markup languages.
 
 ## TODO
+:TODO: Tag escaping for HTML output.
+	Currently text with <brackets> is outputed without escaping.
+
+:TODO: Use unicode characters for syntax.
+	- Bulleted Lists
+		| ∙ Pizza
+		| ∙ Coke
+
+	- Named Lists
+		| ‹and› Are both inputs 1?
+		| ‹or›› Is either input 1?
+		| ‹not› Boolean negation.
+
+	- Annotated blocks and words
+		| ‡TODO‡ Homework
+		| 	†VERB† Do your †NOUN† homework!
+
 :TODO: Support utf8 better
 	:TODO: multicol chars
 		Some unicode chars fill two or even zero columns. The
 		current code assumes they all fill exactly one.
 
 :TODO: Reject unprintable characters (use `isprint(3)').
+	- Make sure this include BOM and anything similar.
+
+:TODO: Reject fancy spacing
+	- Any space character besides ASCII space and tab should be rejected.
+
 :TODO: Break up words in `words'.
 :TODO: Handled `inline-quoted-text'.
 :TODO: Handle macro syntax
