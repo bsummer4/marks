@@ -3,7 +3,7 @@
 `marks' is a {light-weight markup language} like Markdown or
 RestructuredText. Unlike most of these languages, which are designed
 primarily for generating HTML and/or typesetting books, `marks' is meant to
-be produced and concumed primarly as plain text. This document is a valid
+be produced and consumed primarly as plain text. This document is a valid
 `marks' document.
 
 Here are some goals for the format:
